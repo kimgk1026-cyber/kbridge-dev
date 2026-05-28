@@ -1,0 +1,58 @@
+"""
+K-Bridge 데이터베이스 설정
+- 현재: SQLite (개발용)
+- 프로덕션: DATABASE_URL 환경변수로 PostgreSQL 전환
+"""
+
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# ── DB URL 설정 ────────────────────────────────────────────────────
+# 환경변수 DATABASE_URL이 있으면 PostgreSQL 사용
+# 없으면 SQLite 사용 (로컬 개발)
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./kbridge.db"  # 기본값: SQLite
+)
+
+# PostgreSQL URL 형식 변환 (Render/Heroku 호환)
+# postgres:// → postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# ── 엔진 생성 ──────────────────────────────────────────────────────
+if DATABASE_URL.startswith("sqlite"):
+    # SQLite: check_same_thread 비활성화
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        echo=False,
+    )
+    print(f"📦 SQLite DB 연결: {DATABASE_URL}")
+else:
+    # PostgreSQL: 커넥션 풀 설정
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
+        echo=False,
+    )
+    print(f"🐘 PostgreSQL DB 연결 완료")
+
+# ── 세션 & 베이스 ──────────────────────────────────────────────────
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+def get_db():
+    """DB 세션 의존성 주입"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
