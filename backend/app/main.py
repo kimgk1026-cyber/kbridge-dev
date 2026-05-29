@@ -1,3 +1,4 @@
+from fastapi import FastAPI, HTTPException, Request
 from fastapi import FastAPI, HTTPException
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -91,9 +92,9 @@ def root():
 def health():
     return {"status": "healthy", "time": datetime.now().isoformat()}
 
-@limiter.limit("30/minute")
 @app.post("/chat")
-async def chat(req: ChatRequest):
+@limiter.limit("30/minute")
+async def chat(request: Request, req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="메시지가 비어있습니다.")
     response = get_ai_response(
