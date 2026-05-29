@@ -18,7 +18,12 @@ app = FastAPI(title="K-Bridge API", version="1.3.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins = [
+    "http://localhost:3000",
+    "https://www.k-bridge.ai",
+    "https://k-bridge.ai",
+    "https://kbridge-frontend.onrender.com",
+],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
