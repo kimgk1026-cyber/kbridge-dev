@@ -1,4 +1,7 @@
 from fastapi import FastAPI, HTTPException
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -15,6 +18,9 @@ load_dotenv()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="K-Bridge API", version="1.3.0")
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,6 +91,7 @@ def root():
 def health():
     return {"status": "healthy", "time": datetime.now().isoformat()}
 
+@limiter.limit("30/minute")
 @app.post("/chat")
 async def chat(req: ChatRequest):
     if not req.message.strip():
