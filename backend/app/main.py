@@ -92,7 +92,6 @@ def health():
     return {"status": "healthy", "time": datetime.now().isoformat()}
 
 @limiter.limit("30/minute")
-@limiter.limit("30/minute")
 @app.post("/chat")
 async def chat(req: ChatRequest):
     if not req.message.strip():
