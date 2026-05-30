@@ -8,7 +8,7 @@ type Lang      = 'ko' | 'bn' | 'en';
 type ChatEntry = { role: 'user' | 'ai'; text: string; ts: Date };
 type ConvSummary = { id: number; title: string; vertical: string; character: string; updated_at: string };
 
-const API = 'http://localhost:8000';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const VERTICALS: Record<Vertical, {
   name: string; emoji: string; char: string;
