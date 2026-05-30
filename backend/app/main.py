@@ -11,7 +11,7 @@ import os
 from dotenv import load_dotenv
 
 from app.database import engine, Base
-from app.services.ai_character import get_ai_response
+from app.orchestrator.main import orchestrate
 from app.services.auth import register_user, login_user
 from app.routers import conversations
 
@@ -97,12 +97,14 @@ def health():
 async def chat(request: Request, req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="메시지가 비어있습니다.")
-    response = get_ai_response(
-        message=req.message,
-        vertical=req.vertical,
-        user_name=req.user_name or "친구",
-        conversation_history=req.conversation_history or [],
-    )
+    import asyncio
+result = await orchestrate(
+    message=req.message,
+    vertical=req.vertical,
+    user_name=req.user_name,
+    conversation_history=req.conversation_history
+)
+response = result["response"]
     return {"response": response, "vertical": req.vertical}
 
 @app.post("/register")
