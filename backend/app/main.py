@@ -97,14 +97,14 @@ def health():
 async def chat(request: Request, req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="메시지가 비어있습니다.")
-    import asyncio
-result = await orchestrate(
-    message=req.message,
-    vertical=req.vertical,
-    user_name=req.user_name,
-    conversation_history=req.conversation_history
-)
-response = result["response"]
+    from app.orchestrator.main import orchestrate
+    result = await orchestrate(
+        message=req.message,
+        vertical=req.vertical,
+        user_name=req.user_name,
+        conversation_history=req.conversation_history
+    )
+    response = result["response"]
     return {"response": response, "vertical": req.vertical}
 
 @app.post("/register")
